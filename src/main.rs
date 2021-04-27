@@ -15,31 +15,23 @@ const VALID_ADDR_RANGE: Range<u8> = 0x08..0x78;
 use stm32f3xx_hal::{i2c::I2c, pac, prelude::*};
 
 const TSL2591_COMMAND_BIT: u8 = 0xA0;
-const TSL2591_REGISTER_ENABLE: u8 = 0x00;
 const TSL2591_ENABLE_POWERON: u8 = 0x01;
-const TSL2591_ENABLE_AEN: u8 = 0x01;
+const TSL2591_ENABLE_AEN: u8 = 0x02;
 const TSL2591_ENABLE_AIEN: u8 =  0x10;
-const TSL2591_ENABLE_NPIEN: u8 = 0x80;
-const TSL2591_REGISTER_CHAN0_LOW: u8 =  0x14;
-const TSL2591_REGISTER_CHAN1_LOW: u8 = 0x16;
 const TSL2591_ENABLE_POWEROFF: u8 = 0x00;
+// const TSL2591_ENABLE_NPIEN: u8 = 0x80;
+// const TSL2591_REGISTER_CHAN0_LOW: u8 =  0x14;
+// const TSL2591_REGISTER_CHAN1_LOW: u8 = 0x16;
+const TSL2591_REGISTER_ENABLE: u8 = 0x00;
 const TSL2591_REGISTER_CONTROL: u8 = 0x01;
-const TSL2591_INTEGRATIONTIME_100MS: u8 = 0x0;
-const TSL2591_GAIN_LOW: u8 = 0x0;
+const TSL2591_INTEGRATIONTIME_100MS: u8 = 0x05;
+const TSL2591_GAIN_LOW: u8 = 0x30;
 
-pub fn read_register(i2c: &mut I2c<I2C1, (stm32f3xx_hal::gpio::gpiob::PB6<stm32f3xx_hal::gpio::AF4>, stm32f3xx_hal::gpio::gpiob::PB7<stm32f3xx_hal::gpio::AF4>)>, addr: u8) -> [u8; 16] {
-    let mut buffer = [0u8; 16];
-    match i2c.write(0x29, &[TSL2591_REGISTER_ENABLE, TSL2591_ENABLE_POWERON | TSL2591_ENABLE_AEN]) {
+pub fn read_register(i2c: &mut I2c<I2C1, (stm32f3xx_hal::gpio::gpiob::PB6<stm32f3xx_hal::gpio::AF4>, stm32f3xx_hal::gpio::gpiob::PB7<stm32f3xx_hal::gpio::AF4>)>, addr: u8) -> [u8; 2] {
+    let mut buffer = [0u8; 2];
+    match i2c.write_read(0x29, &[TSL2591_COMMAND_BIT | addr], &mut buffer) {
         Ok(_) => {
-            hprintln!("ENABLED!").unwrap();
-        }
-        Err(e) => {
-            hprintln!("{:?}", e).unwrap();
-        }
-    };
-    match i2c.write_read(0x29, &[addr], &mut buffer) {
-        Ok(_) => {
-            hprintln!("Read {:x} OK!", addr).unwrap();
+            ();
         }
         Err(e) => {
             hprintln!("{:?}", e).unwrap();
@@ -49,45 +41,44 @@ pub fn read_register(i2c: &mut I2c<I2C1, (stm32f3xx_hal::gpio::gpiob::PB6<stm32f
 }
 
 pub fn enable(i2c: &mut I2c<I2C1, (stm32f3xx_hal::gpio::gpiob::PB6<stm32f3xx_hal::gpio::AF4>, stm32f3xx_hal::gpio::gpiob::PB7<stm32f3xx_hal::gpio::AF4>)>) {
-    match i2c.write(0x29, &[0x00, TSL2591_REGISTER_ENABLE,
-         TSL2591_ENABLE_POWERON | TSL2591_ENABLE_AEN | TSL2591_ENABLE_AIEN |
-             TSL2591_ENABLE_NPIEN]) {
+    match i2c.write(0x29, &[TSL2591_COMMAND_BIT | TSL2591_REGISTER_ENABLE,
+         TSL2591_ENABLE_POWERON | TSL2591_ENABLE_AEN | TSL2591_ENABLE_AIEN]) {
         Ok(_) => {
-            hprintln!("ENABLED!").unwrap();
+            // hprintln!("ENABLED!").unwrap();
         }
         Err(e) => {
-            hprintln!("{:?}", e).unwrap();
+            hprintln!("Failed to enable {:?}", e).unwrap();
         }
     };
 
-    match i2c.write(0x29, &[TSL2591_REGISTER_CONTROL, TSL2591_INTEGRATIONTIME_100MS | TSL2591_GAIN_LOW]) {
+    match i2c.write(0x29, &[TSL2591_COMMAND_BIT | TSL2591_REGISTER_CONTROL, TSL2591_INTEGRATIONTIME_100MS | TSL2591_GAIN_LOW]) {
         Ok(_) => {
-            hprintln!("GAIN SET").unwrap();
+            // hprintln!("GAIN SET").unwrap();
         }
         Err(e) => {
-            hprintln!("{:?}", e).unwrap();
+            hprintln!("Failed to set gain {:?}", e).unwrap();
         }
     };
 }
 
 pub fn disable(i2c: &mut I2c<I2C1, (stm32f3xx_hal::gpio::gpiob::PB6<stm32f3xx_hal::gpio::AF4>, stm32f3xx_hal::gpio::gpiob::PB7<stm32f3xx_hal::gpio::AF4>)>) {
-    match i2c.write(0x29<<0, &[0x00, TSL2591_REGISTER_ENABLE, TSL2591_ENABLE_POWEROFF]) {
+    match i2c.write(0x29, &[TSL2591_COMMAND_BIT | TSL2591_REGISTER_ENABLE, TSL2591_ENABLE_POWEROFF]) {
         Ok(_) => {
-            hprintln!("ENABLED!").unwrap();
+            // hprintln!("Disabled!").unwrap();
         }
         Err(e) => {
-            hprintln!("{:?}", e).unwrap();
+            hprintln!("failed to disable {:?}", e).unwrap();
         }
     };
 
-    match i2c.write(0x29<<0, &[TSL2591_COMMAND_BIT| TSL2591_REGISTER_CONTROL, TSL2591_INTEGRATIONTIME_100MS | TSL2591_GAIN_LOW]) {
-        Ok(_) => {
-            hprintln!("GAIN SET").unwrap();
-        }
-        Err(e) => {
-            hprintln!("{:?}", e).unwrap();
-        }
-    };
+    // match i2c.write(0x29<<0, &[TSL2591_COMMAND_BIT| TSL2591_REGISTER_CONTROL, TSL2591_INTEGRATIONTIME_100MS | TSL2591_GAIN_LOW]) {
+    //     Ok(_) => {
+    //         hprintln!("Failed to disable gain?").unwrap();
+    //     }
+    //     Err(e) => {
+    //         hprintln!("{:?}", e).unwrap();
+    //     }
+    // };
 }
 
 #[entry]
@@ -121,15 +112,22 @@ fn main() -> ! {
         }
     };
 
-    enable(&mut i2c);
-    delay(10000000);
-    disable(&mut i2c);
+    loop {
+        // Sample
+        disable(&mut i2c);
+        enable(&mut i2c);
+        delay(120);
+        let status = read_register(&mut i2c, 0x13);
 
-    let y = read_register(&mut i2c, TSL2591_REGISTER_CHAN0_LOW);
-    let x = read_register(&mut i2c, TSL2591_REGISTER_CHAN1_LOW);
+        // Read data
+        let x = read_register(&mut i2c, 0x14);
+        let a = read_register(&mut i2c, 0x16);
 
-    hprintln!("x: {:?}", x).unwrap();
-    hprintln!("y: {:?}", y).unwrap();
+        disable(&mut i2c);
+        hprintln!("status: {:x}", status[0]).unwrap();
+        hprintln!("CHAN0LOW: {:x}, {:x}", x[0], x[1]).unwrap();
+        hprintln!("CHAN1LOW: {:x}, {:x}", a[0], a[1]).unwrap();
+    }
     // read_register("Control", &mut i2c, 0x01);
     // read_register("Device ID", &mut i2c, 0x12);
     // read_register("Status", &mut i2c, 0x13);
@@ -152,9 +150,6 @@ fn main() -> ! {
     //         hprint!(" ").unwrap();
     //     }
     // }
-
-    loop {
-    }
 }
 
 
