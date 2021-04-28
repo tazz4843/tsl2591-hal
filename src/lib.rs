@@ -113,22 +113,22 @@ where
         let full_luminosity: u32 = ((channel_1 as u32) << 16 ) | channel_0 as u32;
 
         match mode {
-            Mode::FullSpectrum=> {
+            Mode::FullSpectrum => {
                 Ok(( full_luminosity & 0xFFFF ) as u16)
             }
             Mode::Infrared => {
                 Ok((full_luminosity >> 16) as u16)
             }
             Mode::Visible => {
-                let x = Wrapping(full_luminosity & 0xFFFF);
-                let y = Wrapping(full_luminosity >> 16);
-                Ok((x - y).0 as u16)
+                let x = full_luminosity & 0xFFFF;
+                let y = full_luminosity >> 16;
+                Ok((x - y) as u16)
             }
         }
     }
 
-    pub fn calculate_lux(&mut self, ch_0: u16, ch_1: u16) -> Result<f32, Error<I2cError>> {
-        let a_time = match self.integration_time {
+    fn get_integration_in_ms(&self) -> f32 {
+        match self.integration_time {
             IntegrationTimes::_100MS => {
                 100.
             }
@@ -147,22 +147,36 @@ where
             IntegrationTimes::_600MS => {
                 600.
             }
-        };
+        }
+    }
 
-        let a_gain =  match self.gain {
-            Gain::LOW => {
-                1.0
+    fn get_gain_in_ms(&self) -> f32 {
+        match self.integration_time {
+            IntegrationTimes::_100MS => {
+                100.
             }
-            Gain::MED => {
-                25.
+            IntegrationTimes::_200MS => {
+                200.
             }
-            Gain::HIGH => {
-                428.
+            IntegrationTimes::_300MS => {
+                300.
             }
-            Gain::MAX => {
-                9876.
+            IntegrationTimes::_400MS => {
+                400.
             }
-        };
+            IntegrationTimes::_500MS => {
+                500.
+            }
+            IntegrationTimes::_600MS => {
+                600.
+            }
+        }
+    }
+
+
+    pub fn calculate_lux(&mut self, ch_0: u16, ch_1: u16) -> Result<f32, Error<I2cError>> {
+        let a_time = self.get_integration_in_ms();
+        let a_gain =  self.get_gain_in_ms();
 
         if (ch_0 == 0xFFFF) | (ch_1 == 0xFFFF) {
             // Signal an overflow
