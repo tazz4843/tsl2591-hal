@@ -30,10 +30,13 @@ fn main() -> ! {
     t.set_timing(None).unwrap();
     t.set_gain(None).unwrap();
     loop {
-        let test = t.get_luminosity(Mode::Visible, &mut delay).unwrap();
+        let test = t.get_luminosity(Mode::FullSpectrum, &mut delay);
 
-        iprintln!(&mut cp.ITM.stim[0], "{}", test);
-        // iprintln!(&mut cp.ITM.stim[0], "CHAN1LOW {} {}", a[0], a[1]);
+        match test {
+            Ok(val) => iprintln!(&mut cp.ITM.stim[0], "{}", val ),
+            Err(e) => iprintln!(&mut cp.ITM.stim[0], "{:?}", e)
+        };
+
     }
 }
 
