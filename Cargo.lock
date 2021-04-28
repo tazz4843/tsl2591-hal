@@ -7,14 +7,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "46afbd2983a5d5a7bd740ccb198caf5b82f45c40c09c0eed36052d91cb92e719"
 
 [[package]]
-name = "driver"
-version = "0.1.0"
-dependencies = [
- "bitfield",
- "embedded-hal",
-]
-
-[[package]]
 name = "embedded-hal"
 version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -38,6 +30,14 @@ name = "nb"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "546c37ac5d9e56f55e73b677106873d9d9f5190605e41a856503623648488cae"
+
+[[package]]
+name = "tsl2591"
+version = "0.1.0"
+dependencies = [
+ "bitfield",
+ "embedded-hal",
+]
 
 [[package]]
 name = "void"

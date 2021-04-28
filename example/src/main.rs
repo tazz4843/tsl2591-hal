@@ -26,20 +26,22 @@ fn main() -> ! {
     let sda = gpiob.pb7.into_af4(&mut gpiob.moder, &mut gpiob.afrl);
     let mut i2c = I2c::new(dp.I2C1, (scl, sda), 400.khz(), clocks, &mut rcc.apb1);
     let mut t = tsl2591::Driver::new(i2c).unwrap();
-    t.set_timing();
-    t.set_gain();
+    t.set_timing().unwrap();
+    t.set_gain().unwrap();
+    t.enable().unwrap();
     loop {
         // Sample
         // disable(&mut i2c);
         delay(120);
-        delay(120);
-        t.enable();
-        delay(120);
+        let status = t.get_status().unwrap();
         // Read data
         let (x, a) = t.get_channel_data().unwrap();
+        let lux = t.calculate_lux(x, a).unwrap();
 
-        iprintln!(&mut cp.ITM.stim[0], "CHAN0LOW {} {}", x[0], x[1]);
-        iprintln!(&mut cp.ITM.stim[0], "CHAN1LOW {} {}", a[0], a[1]);
+
+        // iprintln!(&mut cp.ITM.stim[0], "CHAN0LOW {} {}", x[0], x[1]);
+        // iprintln!(&mut cp.ITM.stim[0], "CHAN1LOW {} {}", a[0], a[1]);
+        iprintln!(&mut cp.ITM.stim[0], "Lux {}", lux);
     }
 }
 
