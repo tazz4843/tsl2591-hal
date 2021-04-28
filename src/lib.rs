@@ -1,6 +1,7 @@
 #![no_std]
-use embedded_hal::blocking::i2c::{ Write, WriteRead };
+use embedded_hal::blocking::{delay::DelayMs, i2c::{Write, WriteRead}};
 use bitfield::bitfield;
+use core::num::Wrapping;
 
 pub struct Driver<I2C> {
     i2c: I2C,
@@ -17,14 +18,13 @@ impl<E> From<E> for Error<E> {
 
 impl<I2C, I2cError> Driver<I2C>
 where
-    I2C: WriteRead<Error = I2cError>,
-    I2C: Write<Error = I2cError>
+    I2C: WriteRead<Error = I2cError> + Write<Error = I2cError>
 {
     pub fn new(i2c: I2C) -> Result<Driver<I2C>, Error<I2cError>> {
         let mut driver = Driver {
             i2c,
-            integration_time: IntegrationTimes::TSL2591_INTEGRATIONTIME_200MS,
-            gain: Gain::TSL2591_GAIN_LOW
+            integration_time: IntegrationTimes::_200MS,
+            gain: Gain::LOW
         };
         let id = driver.get_id()?;
         if id != chip::ID {
@@ -36,8 +36,8 @@ where
     pub fn new_define_integration(i2c: I2C, integration_time: IntegrationTimes, gain: Gain) -> Result<Driver<I2C>, Error<I2cError>> {
         let mut driver = Driver {
             i2c,
-            integration_time: integration_time,
-            gain: gain
+            integration_time,
+            gain
 
         };
         let id = driver.get_id()?;
@@ -95,49 +95,71 @@ where
     }
 
 
-    pub fn get_channel_data(&mut self) -> Result<(u16, u16), Error<I2cError>> {
+    pub fn get_channel_data<D: DelayMs<u8>>(&mut self, delay: &mut D) -> Result<(u16, u16), Error<I2cError>> {
+        self.enable()?;
+        delay.delay_ms(240);
         let mut buffer_1 = [0u8; 2];
         let mut buffer_2 = [0u8; 2];
         self.i2c.write_read(chip::I2C, &[chip::COMMAND_BIT | chip::REGISTER_CHAN0_LOW], &mut buffer_1)?;
         self.i2c.write_read(chip::I2C, &[chip::COMMAND_BIT | chip::REGISTER_CHAN1_LOW], &mut buffer_2)?;
-        let channel_1 = ((buffer_1[0] as u16) << 8) | buffer_1[1] as u16;
-        let channel_2 = ((buffer_2[0] as u16) << 8) | buffer_2[1] as u16;
-        Ok((channel_1, channel_2))
+        let channel_0 = ((buffer_1[0] as u16) << 8) | buffer_1[1] as u16;
+        let channel_1 = ((buffer_2[0] as u16) << 8) | buffer_2[1] as u16;
+        self.disable()?;
+        Ok((channel_0, channel_1))
+    }
+
+    pub fn get_luminosity<D: DelayMs<u8>>(&mut self, mode: Mode, delay: &mut D) -> Result<u16, Error<I2cError>> {
+        let (channel_0, channel_1) = self.get_channel_data(delay)?;
+        let full_luminosity: u32 = ((channel_1 as u32) << 16 ) | channel_0 as u32;
+
+        match mode {
+            Mode::FullSpectrum=> {
+                Ok(( full_luminosity & 0xFFFF ) as u16)
+            }
+            Mode::Infrared => {
+                Ok((full_luminosity >> 16) as u16)
+            }
+            Mode::Visible => {
+                let x = Wrapping(full_luminosity & 0xFFFF);
+                let y = Wrapping(full_luminosity >> 16);
+                Ok((x - y).0 as u16)
+            }
+        }
     }
 
     pub fn calculate_lux(&mut self, ch_0: u16, ch_1: u16) -> Result<f32, Error<I2cError>> {
         let a_time = match self.integration_time {
-            IntegrationTimes::TSL2591_INTEGRATIONTIME_100MS => {
+            IntegrationTimes::_100MS => {
                 100.
             }
-            IntegrationTimes::TSL2591_INTEGRATIONTIME_200MS => {
+            IntegrationTimes::_200MS => {
                 200.
             }
-            IntegrationTimes::TSL2591_INTEGRATIONTIME_300MS => {
+            IntegrationTimes::_300MS => {
                 300.
             }
-            IntegrationTimes::TSL2591_INTEGRATIONTIME_400MS => {
+            IntegrationTimes::_400MS => {
                 400.
             }
-            IntegrationTimes::TSL2591_INTEGRATIONTIME_500MS => {
+            IntegrationTimes::_500MS => {
                 500.
             }
-            IntegrationTimes::TSL2591_INTEGRATIONTIME_600MS => {
+            IntegrationTimes::_600MS => {
                 600.
             }
         };
 
         let a_gain =  match self.gain {
-            Gain::TSL2591_GAIN_LOW => {
+            Gain::LOW => {
                 1.0
             }
-            Gain::TSL2591_GAIN_MED => {
+            Gain::MED => {
                 25.
             }
-            Gain::TSL2591_GAIN_HIGH => {
+            Gain::HIGH => {
                 428.
             }
-            Gain::TSL2591_GAIN_MAX => {
+            Gain::MAX => {
                 9876.
             }
         };
@@ -155,20 +177,28 @@ where
     }
 }
 
-pub enum IntegrationTimes {
-    TSL2591_INTEGRATIONTIME_100MS = 0x00, // 100 
-    TSL2591_INTEGRATIONTIME_200MS = 0x01, // 200 millis
-    TSL2591_INTEGRATIONTIME_300MS = 0x02, // 300 millis
-    TSL2591_INTEGRATIONTIME_400MS = 0x03, // 400 millis
-    TSL2591_INTEGRATIONTIME_500MS = 0x04, // 500 millis
-    TSL2591_INTEGRATIONTIME_600MS = 0x05 // 600 millis
+pub enum Mode {
+    Infrared,
+    Visible,
+    FullSpectrum,
 }
 
+#[derive(Clone, Copy)]
+pub enum IntegrationTimes {
+    _100MS = 0x00, // 100 
+    _200MS = 0x01, // 200 millis
+    _300MS = 0x02, // 300 millis
+    _400MS = 0x03, // 400 millis
+    _500MS = 0x04, // 500 millis
+    _600MS = 0x05 // 600 millis
+}
+
+#[derive(Clone, Copy)]
 pub enum Gain {
-  TSL2591_GAIN_LOW = 0x00,  // low gain (1x)
-  TSL2591_GAIN_MED = 0x10,  // medium gain (25x)
-  TSL2591_GAIN_HIGH = 0x20, // medium gain (428x)
-  TSL2591_GAIN_MAX= 0x30  // max gain (9876x)
+  LOW = 0x00,  // low gain (1x)
+  MED = 0x10,  // medium gain (25x)
+  HIGH = 0x20, // medium gain (428x)
+  MAX= 0x30  // max gain (9876x)
 }
 
 
@@ -187,8 +217,6 @@ mod chip {
     pub const REGISTER_ENABLE: u8 = 0x00;
     pub const REGISTER_CONTROL: u8 = 0x01;
     pub const REGISTER_STATUS: u8 = 0x13;
-    pub const INTEGRATIONTIME_100MS: u8 = 0x00;
-    pub const GAIN_LOW: u8 = 0x00;
 }
 
 #[derive(Clone, Copy, Debug)]
