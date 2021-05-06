@@ -1,10 +1,14 @@
 [package]
 name = "tsl2591"
+description = "embedded hal driver for the TSL2591"
+homepage = "https://github.com/pcvonz/tsl2591-rs"
 version = "0.1.0"
 authors = ["Paul <pcvonz@gmail.com>"]
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+repository = "https://github.com/pcvonz/tsl2591-rs"
+license = "MIT OR Apache-2.0"
+keywords = ["embedded-hal"]
+categories = ["embedded"]
 
 [dependencies]
 embedded-hal = "0.2.4"
