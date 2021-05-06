@@ -27,15 +27,14 @@ fn main() -> ! {
     let mut i2c = I2c::new(dp.I2C1, (scl, sda), 400.khz(), clocks, &mut rcc.apb1);
     let mut delay = Delay::new(cp.SYST, clocks);
     let mut t = tsl2591::Driver::new(i2c).unwrap();
+    t.enable().unwrap();
     t.set_timing(None).unwrap();
     t.set_gain(None).unwrap();
     loop {
-        let test = t.get_luminosity(Mode::FullSpectrum, &mut delay);
+        let (ch_0, ch_1) = t.get_channel_data(&mut delay).unwrap();
+        let test = t.calculate_lux(ch_0, ch_1).unwrap();
 
-        match test {
-            Ok(val) => iprintln!(&mut cp.ITM.stim[0], "{}", val ),
-            Err(e) => iprintln!(&mut cp.ITM.stim[0], "{:?}", e)
-        };
+        iprintln!(&mut cp.ITM.stim[0], "{}", test);
 
     }
 }

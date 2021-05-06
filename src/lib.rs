@@ -96,15 +96,13 @@ where
 
 
     pub fn get_channel_data<D: DelayMs<u8>>(&mut self, delay: &mut D) -> Result<(u16, u16), Error<I2cError>> {
-        self.enable()?;
-        delay.delay_ms(240);
+        delay.delay_ms(120);
         let mut buffer_1 = [0u8; 2];
         let mut buffer_2 = [0u8; 2];
         self.i2c.write_read(chip::I2C, &[chip::COMMAND_BIT | chip::CHAN0_LOW], &mut buffer_1)?;
         self.i2c.write_read(chip::I2C, &[chip::COMMAND_BIT | chip::CHAN1_LOW], &mut buffer_2)?;
         let channel_0 = ((buffer_1[0] as u16) << 8) | buffer_1[1] as u16;
         let channel_1 = ((buffer_2[0] as u16) << 8) | buffer_2[1] as u16;
-        self.disable()?;
         Ok((channel_0, channel_1))
     }
 
