@@ -82,7 +82,7 @@ where
         Ok(())
     }
 
-    pub fn set_timing(&mut self, integration_time: Option<Gain>) -> Result<(), Error<I2cError>> {
+    pub fn set_timing(&mut self, integration_time: Option<IntegrationTimes>) -> Result<(), Error<I2cError>> {
         if let Some(integration_time) = integration_time {
             self.i2c.write(0x29, &[chip::COMMAND_BIT | chip::CONTROL, integration_time as u8| self.gain as u8])?;
         } else {
