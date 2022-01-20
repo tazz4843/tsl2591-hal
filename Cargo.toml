@@ -2,7 +2,7 @@
 name = "tsl2591"
 description = "embedded hal driver for the TSL2591"
 homepage = "https://github.com/pcvonz/tsl2591-rs"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Paul <pcvonz@gmail.com>"]
 edition = "2018"
 repository = "https://github.com/pcvonz/tsl2591-rs"
