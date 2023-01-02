@@ -172,40 +172,24 @@ where
         }
     }
 
-    fn get_gain_in_ms(&self) -> f32 {
-        match self.integration_time {
-            IntegrationTimes::_100MS => {
-                100.
-            }
-            IntegrationTimes::_200MS => {
-                200.
-            }
-            IntegrationTimes::_300MS => {
-                300.
-            }
-            IntegrationTimes::_400MS => {
-                400.
-            }
-            IntegrationTimes::_500MS => {
-                500.
-            }
-            IntegrationTimes::_600MS => {
-                600.
-            }
+    fn get_gain_multiplier(&self) -> f32 {
+        match self.gain {
+            Gain::LOW => 1.,
+            Gain::MED => 25.,
+            Gain::HIGH => 428.,
+            Gain::MAX => 9876.,
         }
     }
 
     pub fn calculate_lux(&mut self, ch_0: u16, ch_1: u16) -> Result<f32, Error<I2cError>> {
-        let a_time = self.get_integration_in_ms();
-        let a_gain =  self.get_gain_in_ms();
-
         if (ch_0 == 0xFFFF) | (ch_1 == 0xFFFF) {
             // Signal an overflow
             return Err(Error::SignalOverflow());
         }
 
+        let a_time = self.get_integration_in_ms();
+        let a_gain = self.get_gain_multiplier();
         let cpl = (a_time * a_gain) / 408.0;
-
         let lux = ((ch_0 as f32 - ch_1 as f32)) * (1.0 - (ch_1 as f32  / ch_0 as f32)) / cpl;
 
         Ok(lux)
