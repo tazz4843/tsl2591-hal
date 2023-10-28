@@ -11,6 +11,11 @@ keywords = ["embedded-hal"]
 categories = ["embedded"]
 
 [dependencies]
-embedded-hal = "0.2.4"
+embedded-hal = { version = "1.0.0-rc.1", optional = true }
+embedded-hal-async = { version = "1.0.0-rc.1", optional = true }
 bitfield = "0.13.2"
 
+[features]
+default = []
+blocking = ["dep:embedded-hal"]
+async = ["dep:embedded-hal-async"]
