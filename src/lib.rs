@@ -28,6 +28,7 @@ mod sensor_impl;
 mod types;
 
 pub use error::Error;
+pub use lux_conversion::{calculate_lux, calculate_nano_lux};
 pub use sensor_impl::Tsl2591;
 pub use types::{Enable, Gain, IntegrationTime, Mode, Status};
 
