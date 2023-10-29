@@ -54,8 +54,8 @@ pub fn calculate_nano_lux(
         return None;
     }
 
-    let a_time = integration_time.get_integration_time_millis() as i64;
-    let a_gain = gain.get_multiplier() as i64;
+    let a_time = integration_time.get_integration_time_millis() as i64 * INTEGER_CONVERSION_FACTOR;
+    let a_gain = gain.get_multiplier() as i64 * INTEGER_CONVERSION_FACTOR;
 
     let ch_0 = ch_0 as i64 * INTEGER_CONVERSION_FACTOR;
     let ch_1 = ch_1 as i64 * INTEGER_CONVERSION_FACTOR;
