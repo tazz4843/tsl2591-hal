@@ -28,6 +28,7 @@ mod types;
 
 pub use error::Error;
 pub use sensor_impl::Tsl2591;
+pub use types::{Enable, Gain, IntegrationTime, Mode, Status};
 
 #[cfg(not(any(feature = "blocking", feature = "async")))]
 compile_error!("You must enable exactly one of the following features: `blocking`, `async`");
