@@ -61,6 +61,9 @@ pub fn calculate_nano_lux(
     let ch_1 = ch_1 as i64 * INTEGER_CONVERSION_FACTOR;
 
     let cpl = (a_time * a_gain) / LUX_DF_INT;
+    if cpl == 0 {
+        return None; // avoid divide by zero
+    }
     let lux1 = (ch_0 - (LUX_COEFB_INT * ch_1)) / cpl;
     let lux2 = ((LUX_COEFC_INT * ch_0) - (LUX_COEFD_INT * ch_1)) / cpl;
 
