@@ -188,17 +188,13 @@ where
     }
 
     pub fn calculate_lux(&mut self, ch_0: u16, ch_1: u16) -> Result<f32, Error<I2cError>> {
-        if (ch_0 == 0xFFFF) | (ch_1 == 0xFFFF) {
-            // Signal an overflow
-            return Err(Error::SignalOverflow);
-        }
+        crate::lux_conversion::calculate_lux(self.integration_time, self.gain, ch_0, ch_1)
+            .ok_or(Error::SignalOverflow)
+    }
 
-        let a_time = self.integration_time.get_integration_time_millis() as f32;
-        let a_gain = self.gain.get_multiplier() as f32;
-        let cpl = (a_time * a_gain) / 408.0;
-        let lux = (ch_0 as f32 - ch_1 as f32) * (1.0 - (ch_1 as f32 / ch_0 as f32)) / cpl;
-
-        Ok(lux)
+    pub fn calculate_nano_lux(&mut self, ch_0: u16, ch_1: u16) -> Result<i64, Error<I2cError>> {
+        crate::lux_conversion::calculate_nano_lux(self.integration_time, self.gain, ch_0, ch_1)
+            .ok_or(Error::SignalOverflow)
     }
 }
 
@@ -393,16 +389,12 @@ where
     }
 
     pub fn calculate_lux(&mut self, ch_0: u16, ch_1: u16) -> Result<f32, Error<I2cError>> {
-        if (ch_0 == 0xFFFF) | (ch_1 == 0xFFFF) {
-            // Signal an overflow
-            return Err(Error::SignalOverflow);
-        }
+        crate::lux_conversion::calculate_lux(self.integration_time, self.gain, ch_0, ch_1)
+            .ok_or(Error::SignalOverflow)
+    }
 
-        let a_time = self.integration_time.get_integration_time_millis() as f32;
-        let a_gain = self.gain.get_multiplier() as f32;
-        let cpl = (a_time * a_gain) / 408.0;
-        let lux = (ch_0 as f32 - ch_1 as f32) * (1.0 - (ch_1 as f32 / ch_0 as f32)) / cpl;
-
-        Ok(lux)
+    pub fn calculate_nano_lux(&mut self, ch_0: u16, ch_1: u16) -> Result<i64, Error<I2cError>> {
+        crate::lux_conversion::calculate_nano_lux(self.integration_time, self.gain, ch_0, ch_1)
+            .ok_or(Error::SignalOverflow)
     }
 }

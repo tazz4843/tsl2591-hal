@@ -23,6 +23,7 @@
 
 mod chip;
 mod error;
+mod lux_conversion;
 mod sensor_impl;
 mod types;
 
