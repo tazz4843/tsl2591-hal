@@ -1,3 +1,4 @@
+use crate::lux_conversion::LuxConverter;
 use crate::{
     chip,
     error::Error,
@@ -187,13 +188,21 @@ where
         }
     }
 
-    pub fn calculate_lux(&mut self, ch_0: u16, ch_1: u16) -> Result<f32, Error<I2cError>> {
-        crate::lux_conversion::calculate_lux(self.integration_time, self.gain, ch_0, ch_1)
+    pub fn calculate_lux<T: LuxConverter>(
+        &self,
+        ch_0: u16,
+        ch_1: u16,
+    ) -> Result<f32, Error<I2cError>> {
+        <T as LuxConverter>::calculate_lux(self.integration_time, self.gain, ch_0, ch_1)
             .ok_or(Error::SignalOverflow)
     }
 
-    pub fn calculate_nano_lux(&mut self, ch_0: u16, ch_1: u16) -> Result<i64, Error<I2cError>> {
-        crate::lux_conversion::calculate_nano_lux(self.integration_time, self.gain, ch_0, ch_1)
+    pub fn calculate_nano_lux<T: LuxConverter>(
+        &self,
+        ch_0: u16,
+        ch_1: u16,
+    ) -> Result<i64, Error<I2cError>> {
+        <T as LuxConverter>::calculate_nano_lux(self.integration_time, self.gain, ch_0, ch_1)
             .ok_or(Error::SignalOverflow)
     }
 }
@@ -388,13 +397,21 @@ where
         }
     }
 
-    pub fn calculate_lux(&mut self, ch_0: u16, ch_1: u16) -> Result<f32, Error<I2cError>> {
-        crate::lux_conversion::calculate_lux(self.integration_time, self.gain, ch_0, ch_1)
+    pub fn calculate_lux<T: LuxConverter>(
+        &self,
+        ch_0: u16,
+        ch_1: u16,
+    ) -> Result<f32, Error<I2cError>> {
+        <T as LuxConverter>::calculate_lux(self.integration_time, self.gain, ch_0, ch_1)
             .ok_or(Error::SignalOverflow)
     }
 
-    pub fn calculate_nano_lux(&mut self, ch_0: u16, ch_1: u16) -> Result<i64, Error<I2cError>> {
-        crate::lux_conversion::calculate_nano_lux(self.integration_time, self.gain, ch_0, ch_1)
+    pub fn calculate_nano_lux<T: LuxConverter>(
+        &self,
+        ch_0: u16,
+        ch_1: u16,
+    ) -> Result<i64, Error<I2cError>> {
+        <T as LuxConverter>::calculate_nano_lux(self.integration_time, self.gain, ch_0, ch_1)
             .ok_or(Error::SignalOverflow)
     }
 }
