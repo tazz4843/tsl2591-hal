@@ -8,7 +8,7 @@ pub enum Mode {
     FullSpectrum,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq, PartialOrd, Eq, Ord)]
 pub enum IntegrationTime {
     _100MS = 0x00, // 100
     _200MS = 0x01, // 200 millis
@@ -31,7 +31,7 @@ impl IntegrationTime {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq, PartialOrd, Eq, Ord)]
 pub enum Gain {
     Low = 0x00,  // low gain (1x)
     Med = 0x10,  // medium gain (25x)
