@@ -70,7 +70,7 @@ pub fn calculate_nano_lux(
     Some(i64::max(lux1, lux2))
 }
 
-fn check_overflow(integration_time: IntegrationTime, ch_0: u16, ch_1: u16) -> bool {
+pub fn check_overflow(integration_time: IntegrationTime, ch_0: u16, ch_1: u16) -> bool {
     let overflow_value = if let IntegrationTime::_100MS = integration_time {
         OVERFLOW_100MS
     } else {
