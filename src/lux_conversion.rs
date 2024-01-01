@@ -11,7 +11,7 @@ pub fn check_overflow(integration_time: IntegrationTime, ch_0: u16, ch_1: u16) -
         OVERFLOW_OTHER
     };
 
-    (ch_0 >= overflow_value) | (ch_1 >= overflow_value)
+    (ch_0 >= overflow_value) || (ch_1 >= overflow_value)
 }
 
 /// Calculate lux from raw channel data.
@@ -129,5 +129,25 @@ impl LuxConverter for YoctoLuxConverter {
         }
 
         Some(nano_lux)
+    }
+}
+
+/// Based on https://ams.com/documents/20143/36005/AmbientLightSensors_AN000170_2-00.pdf
+///
+/// Assumes sunlight spectrum
+pub struct AmsLuxConverterSunlight;
+impl LuxConverter for AmsLuxConverterSunlight {
+    fn calculate_nano_lux(
+        integration_time: IntegrationTime,
+        gain: Gain,
+        ch_0: u16,
+        ch_1: u16,
+    ) -> Option<i64> {
+        ((ch_0 as i64 * INTEGER_CONVERSION_FACTOR)
+            - 1_850_000_000 * (ch_1 as i64 * INTEGER_CONVERSION_FACTOR))
+            .checked_div(
+                (integration_time.get_integration_time_millis() * gain.get_multiplier() / 52)
+                    as i64,
+            )
     }
 }
