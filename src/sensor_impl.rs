@@ -7,12 +7,12 @@ use crate::{
 use core::marker::PhantomData;
 #[cfg(feature = "blocking")]
 use embedded_hal::{
-    delay::DelayUs,
+    delay::DelayNs,
     i2c::{I2c, SevenBitAddress},
 };
 #[cfg(feature = "async")]
 use embedded_hal_async::{
-    delay::DelayUs,
+    delay::DelayNs,
     i2c::{I2c, SevenBitAddress},
 };
 
@@ -27,7 +27,7 @@ pub struct Tsl2591<I, D> {
 impl<I2C, I2cError, Delay> Tsl2591<I2C, Delay>
 where
     I2C: I2c<SevenBitAddress, Error = I2cError>,
-    Delay: DelayUs,
+    Delay: DelayNs,
 {
     pub fn new(i2c: I2C) -> Result<Tsl2591<I2C, Delay>, Error<I2cError>> {
         let mut driver = Tsl2591 {
@@ -211,7 +211,7 @@ where
 impl<I2C, I2cError, Delay> Tsl2591<I2C, Delay>
 where
     I2C: I2c<SevenBitAddress, Error = I2cError>,
-    Delay: DelayUs,
+    Delay: DelayNs,
 {
     pub async fn new(i2c: I2C) -> Result<Tsl2591<I2C, Delay>, Error<I2cError>> {
         let mut driver = Tsl2591 {
